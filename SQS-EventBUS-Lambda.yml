@@ -1,0 +1,306 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS CloudFormation Template to configure a DataSync Task, a NFS Source Location and S3 Destination Location
+Parameters:
+  pOrganization:
+    Description: Organization Name
+    Default: Technology and Discovery Centers
+    Type: String
+  pBusinessUnit:
+    Description: Official name of Regeneron Business Unit associated with the resources
+    Type: String
+    Default: RnD
+    AllowedValues:
+      - GNA
+      - RnD
+      - RGC
+      - IOPS
+      - COM
+      - GCD
+  pDepartment:
+    Description: Department Name
+    Default: Molecular Profiling
+    Type: String
+  pCostCenter:
+    Description: CostCenter
+    Default: "0181"
+    Type: String
+    ConstraintDescription: Numerics only
+  pEnvironment:
+    Description: Environment of System which indicates the nature of workload
+    Type: String
+    Default: PRD
+    AllowedValues:
+      - DEV
+      - TST
+      - PRD
+      - DR
+  pSystemName:
+    Description: System Name associated with the resources
+    Default: tenxpipeline
+    Type: String
+  pSystemOwner:
+    Description: System Owner
+    Default: yueming.ding@regeneron.com
+    Type: String
+  pTSM:
+    Type: String
+    Description: Technical System Manager for the environment
+    Default: cuie.hu@regeneron.com
+  pCreatorName:
+    Description: Creator of the Stack
+    Type: String
+    Default: s.Nagaraj.selvaraj
+  pManagedBy:
+    Type: String
+    Description: Team responsible for the maintenance of the resources
+    Default: HPCOps
+    AllowedValues:
+      - HPCOps
+      - DataOps
+      - CloudOps
+  pGxP:
+    Type: String
+    Description: Helps us to identify the regulatory status of systems
+    Default: false
+    AllowedValues:
+      - false
+      - true
+  pQueueName:
+    Type: String
+    Description: Provide queue name
+    Default: hpc-alphafold-queue-01
+
+Resources:
+  TaskQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 10
+      QueueName: 
+        Ref: pQueueName
+#      ReceiveMessageWaitTimeSeconds: 
+#      RedriveAllowPolicy: 
+      VisibilityTimeout: 60
+      Tags:
+        - Key: Description
+          Value: Repository used for Protein Folding
+        - Key: Organization
+          Value:
+            Ref: pOrganization
+        - Key: BusinessUnit
+          Value:
+            Ref: pBusinessUnit
+        - Key: Department
+          Value:
+            Ref: pDepartment
+        - Key: CostCenter
+          Value:
+            Ref: pCostCenter
+        - Key: Environment
+          Value:
+            Ref: pEnvironment
+        - Key: SysName
+          Value:
+            Ref: pSystemName
+        - Key: SysOwner
+          Value:
+            Ref: pSystemOwner
+        - Key: TSM
+          Value:
+            Ref: pTSM
+        - Key: CreatorName
+          Value:
+            Ref: pCreatorName
+        - Key: ManagedBy
+          Value:
+            Ref: pManagedBy
+        - Key: GxP
+          Value:
+            Ref: pGxP
+  LambdaFunction01:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+            import json
+            def lambda_handler(event, context):
+                # TODO implement
+                return {
+                'statusCode': 200,
+                'body': json.dumps('Hello world!')
+            }
+      Description: AWS Lambda function
+      FunctionName: 'HPC-RND-ProteinFolding-DEV-SQS-LAMBDA'
+      Handler: index.lambda_handler
+      MemorySize: 256
+      Role: 
+        Fn::GetAtt: LambdaIamRole01.Arn
+      Runtime: python3.9
+      Timeout: 60
+      Environment:
+        Variables:
+          TASK_QUEUE_URL: !Ref TaskQueue
+      Tags:
+        - Key: Description
+          Value: Repository used for Protein Folding
+        - Key: Organization
+          Value:
+            Ref: pOrganization
+        - Key: BusinessUnit
+          Value:
+            Ref: pBusinessUnit
+        - Key: Department
+          Value:
+            Ref: pDepartment
+        - Key: CostCenter
+          Value:
+            Ref: pCostCenter
+        - Key: Environment
+          Value:
+            Ref: pEnvironment
+        - Key: SysName
+          Value:
+            Ref: pSystemName
+        - Key: SysOwner
+          Value:
+            Ref: pSystemOwner
+        - Key: TSM
+          Value:
+            Ref: pTSM
+        - Key: CreatorName
+          Value:
+            Ref: pCreatorName
+        - Key: ManagedBy
+          Value:
+            Ref: pManagedBy
+        - Key: GxP
+          Value:
+            Ref: pGxP
+
+  #Creating an IAM role for LAMBDA
+  LambdaIamRole01:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement: 
+        - Effect: Allow
+          Principal: 
+            Service: lambda.amazonaws.com
+          Action: 
+          - sts:AssumeRole
+      Path: '/'
+      Policies: 
+      - PolicyName: logs
+        PolicyDocument: 
+          Statement: 
+          - Effect: Allow
+            Action: 
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+      - PolicyName: sqs
+        PolicyDocument: 
+          Statement: 
+          - Effect: Allow
+            Action: 
+            - sqs:ReceiveMessage
+            Resource: !Sub ${TaskQueue.Arn}
+      Tags:
+        - Key: Description
+          Value: Repository used for Protein Folding
+        - Key: Organization
+          Value:
+            Ref: pOrganization
+        - Key: BusinessUnit
+          Value:
+            Ref: pBusinessUnit
+        - Key: Department
+          Value:
+            Ref: pDepartment
+        - Key: CostCenter
+          Value:
+            Ref: pCostCenter
+        - Key: Environment
+          Value:
+            Ref: pEnvironment
+        - Key: SysName
+          Value:
+            Ref: pSystemName
+        - Key: SysOwner
+          Value:
+            Ref: pSystemOwner
+        - Key: TSM
+          Value:
+            Ref: pTSM
+        - Key: CreatorName
+          Value:
+            Ref: pCreatorName
+        - Key: ManagedBy
+          Value:
+            Ref: pManagedBy
+        - Key: GxP
+          Value:
+            Ref: pGxP
+
+  LambdaPermision01:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:*
+      FunctionName: 
+        Fn::GetAtt: LambdaFunction01.Arn
+      Principal: 'sqs.amazonaws.com'
+      SourceAccount: 
+        Ref: 'AWS::AccountId'
+
+  LambdaPermision01:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:*
+      FunctionName: 
+        Fn::GetAtt: LambdaFunction01.Arn
+      Principal: 'events.amazonaws.com'
+      SourceAccount: 
+        Ref: 'AWS::AccountId'  
+
+  EventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+#      EventSourceName: hpc-alphafold-eventsource
+      Name: hpc-alphafold-eventbus
+      Tags:
+        - Key: Description
+          Value: Repository used for Protein Folding
+        - Key: Organization
+          Value:
+            Ref: pOrganization
+        - Key: BusinessUnit
+          Value:
+            Ref: pBusinessUnit
+        - Key: Department
+          Value:
+            Ref: pDepartment
+        - Key: CostCenter
+          Value:
+            Ref: pCostCenter
+        - Key: Environment
+          Value:
+            Ref: pEnvironment
+        - Key: SysName
+          Value:
+            Ref: pSystemName
+        - Key: SysOwner
+          Value:
+            Ref: pSystemOwner
+        - Key: TSM
+          Value:
+            Ref: pTSM
+        - Key: CreatorName
+          Value:
+            Ref: pCreatorName
+        - Key: ManagedBy
+          Value:
+            Ref: pManagedBy
+        - Key: GxP
+          Value:
+            Ref: pGxP
