@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 
+
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    DependsOn:
+      - HPCpfoldingSSMManagedPolicy
+    Properties:
+      Description: pfolding Instance Role
+      RoleName: 
+        - LambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ""
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - Ref: HPCpfoldingSSMManagedPolicy
+
+  HPCpfoldingSSMManagedPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      Description: IAM Policy to enable SSM Management on pfolding
+      ManagedPolicyName: HPC-pfolding-SSMManaged-Policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "ssm:DescribeAssociation"
+              - "ssm:GetDeployablePatchSnapshotForInstance"
+              - "ssm:GetDocument"
+              - "ssm:DescribeDocument"
+              - "ssm:GetManifest"
+              - "ssm:GetParameters"
+              - "ssm:ListAssociations"
+              - "ssm:ListInstanceAssociations"
+              - "ssm:PutInventory"
+              - "ssm:PutComplianceItems"
+              - "ssm:PutConfigurePackageResult"
+              - "ssm:UpdateAssociationStatus"
+              - "ssm:UpdateInstanceAssociationStatus"
+              - "ssm:UpdateInstanceInformation"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "autoscaling:Describe*"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "ce:*"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "ec2messages:*"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "logs:*"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "ssmmessages:CreateControlChannel"
+              - "ssmmessages:CreateDataChannel"
+              - "ssmmessages:OpenControlChannel"
+              - "ssmmessages:OpenDataChannel"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "ds:CreateComputer"
+              - "ds:DescribeDirectories"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "ec2:StartInstances"
+              - "ec2:StopInstances"
+              - "ec2:*"
+              - "ec2:DescribeInstanceStatus"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "s3:Get*"
+              - "s3:Put*"
+              - "s3:AbortMultipartUpload"
+              - "s3:List*"
+            Resource:
+              - "arn:aws:s3:::hpc*"
+              - "arn:aws:s3:::regn-archive-hpc"
+              - "arn:aws:s3:::regn-hpc*"
+            Effect: Allow
+          - Action:
+              - "kms:Decrypt"
+              - "kms:ListKeyPolicies"
+              - "kms:ListRetirableGrants"
+              - "kms:Encrypt"
+              - "kms:GenerateDataKey"
+              - "kms:DescribeKey"
+              - "kms:ListResourceTags"
+              - "ssm:GetParameter"
+              - "kms:ListGrants"
+            Resource:
+              - "arn:aws:ssm:*:*:parameter/regn-cld-ssm-domain-join"
+              - "arn:aws:ssm:*:*:parameter/regn-cld-cwlogconfig"
+              - "arn:aws:ssm:*:*:parameter/regn-win-cld-cwlogconfig"
+              - "arn:aws:ssm:*:*:parameter/regn-cld-ssm-domain-join-user-name"
+              - "arn:aws:ssm:*:*:parameter/regn-lnx-cld-cwlogconfig"
+              - >-
+                arn:aws:kms:us-east-1:265776368239:key/8727238f-124f-4ea1-9670-5b75b6789081
+            Effect: Allow
+            Sid: VisualEditor0
+          - Action:
+              - "ec2messages:GetEndpoint"
+              - "logs:DescribeLogStreams"
+              - "ds:CreateComputer"
+              - "ssmmessages:OpenControlChannel"
+              - "ec2messages:GetMessages"
+              - "ssm:GetPatchBaselineForPatchGroup"
+              - "ssm:PutConfigurePackageResult"
+              - "ssm:ListInstanceAssociations"
+              - "ssm:UpdateAssociationStatus"
+              - "ssm:GetManifest"
+              - "ec2messages:DeleteMessage"
+              - "logs:CreateLogStream"
+              - "ssm:UpdateInstanceInformation"
+              - "ec2messages:FailMessage"
+              - "ssmmessages:OpenDataChannel"
+              - "ssm:GetDocument"
+              - "ssm:PutComplianceItems"
+              - "ssm:GetPatchBaseline"
+              - "ec2:DescribeInstanceStatus"
+              - "ssm:DescribeAssociation"
+              - "logs:DescribeLogGroups"
+              - "ssm:GetDeployablePatchSnapshotForInstance"
+              - "ec2messages:AcknowledgeMessage"
+              - "ssmmessages:CreateControlChannel"
+              - "ssm:GetParameters"
+              - "logs:CreateLogGroup"
+              - "logs:PutLogEvents"
+              - "ssmmessages:CreateDataChannel"
+              - "kms:ListKeys"
+              - "ssm:PutInventory"
+              - "kms:ListAliases"
+              - "ds:DescribeDirectories"
+              - "ec2messages:SendReply"
+              - "ssm:ListAssociations"
+              - "ssm:UpdateInstanceAssociationStatus"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "ec2:createsnapshot"
+              - "ec2:describeinstances"
+              - "ec2messages:*"
+              - "ssm:updateinstanceinformation"
+              - "ssm:listassociations"
+              - "ec2:createimage"
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - "cloudwatch:PutMetricData"
+            Resource: "*"
+            Effect: Allow
+          - Action: "ssm:SendCommand"
+            Resource: "*"
+            Effect: Allow 
